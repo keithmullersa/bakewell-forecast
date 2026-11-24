@@ -1,10 +1,10 @@
-name: Fetch Cunderdin observations
+name: Fetch observations
 
 on:
   schedule:
-    # 7 minutes after each BoM half-hour issue. UTC offset is a whole
-    # number, so this is also :07 and :37 AWST.
-    - cron: "7,37 * * * *"
+    # Every 10 minutes so Skyshelter (typically sub-10-min updates) stays fresh.
+    # BoM Cunderdin is also fetched on every run and stored as the backup block.
+    - cron: "*/10 * * * *"
   workflow_dispatch:
 
 permissions:
@@ -17,7 +17,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Fetch BoM Cunderdin observation
+      - name: Fetch live observations
         run: python3 scripts/fetch_obs.py
 
       - name: Commit observations.json if the reading changed
@@ -29,5 +29,5 @@ jobs:
             echo "No observation change"
             exit 0
           fi
-          git commit -m "Update Cunderdin observations"
+          git commit -m "Update observations"
           git push
