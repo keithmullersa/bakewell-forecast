@@ -1,0 +1,33 @@
+name: Fetch Cunderdin observations
+
+on:
+  schedule:
+    # 7 minutes after each BoM half-hour issue. UTC offset is a whole
+    # number, so this is also :07 and :37 AWST.
+    - cron: "7,37 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Fetch BoM Cunderdin observation
+        run: python3 scripts/fetch_obs.py
+
+      - name: Commit observations.json if the reading changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add observations.json
+          if git diff --cached --quiet; then
+            echo "No observation change"
+            exit 0
+          fi
+          git commit -m "Update Cunderdin observations"
+          git push
